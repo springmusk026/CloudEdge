@@ -1,8 +1,8 @@
 // Comments Routes — threaded comments with moderation
 import { Hono } from 'hono';
 import type { AppEnv } from '../index';
-import { comments, users } from '@cloudedge/db';
-import { eq, and, desc } from 'drizzle-orm';
+import { comments, users, commentReactions } from '@cloudedge/db';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { authMiddleware, optionalAuth, requireRole } from '../middleware/auth';
 import { rateLimiter } from '../middleware/rate-limit';
 
@@ -70,6 +70,21 @@ commentsRoutes.patch('/:id/moderate', authMiddleware, requireRole('owner', 'admi
   const { status } = await c.req.json<{ status: 'approved' | 'spam' | 'deleted' }>();
   await c.get('db').update(comments).set({ status }).where(eq(comments.id, c.req.param('id')));
   return c.json({ ok: true });
+});
+
+// POST /api/v1/comments/:id/react — like/react to a comment
+commentsRoutes.post('/:id/react', optionalAuth, async (c) => {
+  const userId = c.get('userId');
+  if (!userId) return c.json({ error: 'Login required to react' }, 401);
+  const { reaction } = await c.req.json<{ reaction: string }>();
+  const db = c.get('db');
+  // Upsert reaction
+  await db.delete(commentReactions).where(and(eq(commentReactions.commentId, c.req.param('id')), eq(commentReactions.userId, userId)));
+  await db.insert(commentReactions).values({ commentId: c.req.param('id'), userId, reaction: reaction as any });
+  // Update upvote count
+  const count = await db.select({ count: sql<number>`count(*)` }).from(commentReactions).where(eq(commentReactions.commentId, c.req.param('id'))).get();
+  await db.update(comments).set({ upvotes: count?.count || 0 }).where(eq(comments.id, c.req.param('id')));
+  return c.json({ ok: true, count: count?.count || 0 });
 });
 
 async function hashIP(ip: string): Promise<string> {

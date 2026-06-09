@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { LayoutDashboard, FileText, Image, MessageCircle, Mail, Tag, Users, BarChart3, Settings, LogOut, Palette } from 'lucide-react';
+import { LayoutDashboard, FileText, Image, MessageCircle, Mail, Tag, Users, BarChart3, Settings, LogOut, Palette, History, Activity } from 'lucide-react';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -15,6 +15,8 @@ const NAV = [
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },
   { to: '/customizer', label: 'Customize', icon: Palette },
+  { to: '/activity', label: 'Activity', icon: History },
+  { to: '/health', label: 'Health', icon: Activity },
 ];
 
 export function Layout() {

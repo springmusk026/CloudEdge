@@ -74,6 +74,7 @@ export function PostsList() {
                 <TableCell>
                   <Link to={`/posts/${post.id}/edit`} className="font-medium hover:text-primary">{post.title}</Link>
                   {post.featured && <Badge variant="outline" className="ml-2 text-xs">Featured</Badge>}
+                  {post.wordCount && <span className="ml-2 text-xs text-muted-foreground">{post.wordCount} words</span>}
                 </TableCell>
                 <TableCell><Badge variant={statusVariant[post.status] || 'secondary'}>{post.status}</Badge></TableCell>
                 <TableCell className="text-muted-foreground text-sm">{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : '—'}</TableCell>

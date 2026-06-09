@@ -7,6 +7,7 @@ import { TableOfContents } from '@/components/TableOfContents';
 import { RelatedPosts } from '@/components/RelatedPosts';
 import { SEOHead } from '@/components/SEOHead';
 import { BookmarkButton } from '@/components/BookmarkButton';
+import { ShareButtons } from '@/components/ShareButtons';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,6 +94,7 @@ export function PostPage() {
             )}
             <BookmarkButton postId={post.id} title={post.title} slug={post.slug} />
           </div>
+          <ShareButtons title={post.title} slug={post.slug} />
         </header>
 
         {/* Table of Contents */}

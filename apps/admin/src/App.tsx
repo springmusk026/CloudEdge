@@ -13,6 +13,8 @@ import { Users } from '@/pages/Users';
 import { Tags } from '@/pages/Tags';
 import { Analytics } from '@/pages/Analytics';
 import { Customizer } from '@/pages/Customizer';
+import { ActivityLog } from '@/pages/ActivityLog';
+import { SiteHealth } from '@/pages/SiteHealth';
 import { CommandPalette } from '@/components/CommandPalette';
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -39,6 +41,8 @@ export default function App() {
         <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />
         <Route path="customizer" element={<Customizer />} />
+        <Route path="activity" element={<ActivityLog />} />
+        <Route path="health" element={<SiteHealth />} />
       </Route>
       </Routes>
     </>
