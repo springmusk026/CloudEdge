@@ -1,0 +1,151 @@
+# CloudEdge CMS — Wrangler Configuration
+# Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "cloudedge-cms"
+main = "apps/worker/src/index.ts"
+compatibility_date = "2024-09-26"
+compatibility_flags = ["nodejs_compat"]
+
+# ─── D1 Databases ───
+[[d1_databases]]
+binding = "DB"
+database_name = "cloudedge-cms-db-dev"
+database_id = "17664fb0-c7ce-44a5-b94c-6358ecb976cc"
+migrations_dir = "packages/db/migrations"
+
+# ─── KV Namespaces ───
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "a9d0e2162a884426a3e5fed613dd0691"
+
+[[kv_namespaces]]
+binding = "CACHE_RENDERED"
+id = "233addd11a2745b2a8506248b75dd2d4"
+
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "4bbf416fc14f4a02a487eb327b895075"
+
+[[kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "6e500518a268465aa50a71dc7ad758c3"
+
+[[kv_namespaces]]
+binding = "SITE_CONFIG"
+id = "b6a25188e97940ed907750e5cca2313a"
+
+[[kv_namespaces]]
+binding = "EMAIL_QUEUE_DEDUP"
+id = "0c121aea14c74a8fa6f6007104ff1d6f"
+
+[[kv_namespaces]]
+binding = "SEARCH_CACHE"
+id = "771f4974d73d4fbb8a54ae6ecc5bc706"
+
+# ─── R2 Buckets ───
+[[r2_buckets]]
+binding = "MEDIA_UPLOADS"
+bucket_name = "cloudedge-media-uploads"
+
+[[r2_buckets]]
+binding = "MEDIA_PROCESSED"
+bucket_name = "cloudedge-media-processed"
+
+[[r2_buckets]]
+binding = "SITE_BACKUPS"
+bucket_name = "cloudedge-site-backups"
+
+[[r2_buckets]]
+binding = "NEWSLETTER_ARCHIVES"
+bucket_name = "cloudedge-newsletter-archives"
+
+[[r2_buckets]]
+binding = "IMPORT_EXPORT"
+bucket_name = "cloudedge-import-export"
+
+# ─── Durable Objects ───
+[durable_objects]
+bindings = [
+  { name = "POST_COLLABORATION", class_name = "PostCollaborationDO" },
+  { name = "LIVE_COMMENTS", class_name = "LiveCommentsDO" },
+  { name = "ANALYTICS", class_name = "AnalyticsDO" },
+  { name = "BUILD_QUEUE", class_name = "BuildQueueDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["PostCollaborationDO", "LiveCommentsDO", "AnalyticsDO", "BuildQueueDO"]
+
+# ─── Queues ───
+[[queues.producers]]
+binding = "IMAGE_QUEUE"
+queue = "cloudedge-image-processing"
+
+[[queues.producers]]
+binding = "EMAIL_QUEUE"
+queue = "cloudedge-email-sending"
+
+[[queues.consumers]]
+queue = "cloudedge-image-processing"
+max_batch_size = 10
+max_batch_timeout = 30
+
+[[queues.consumers]]
+queue = "cloudedge-email-sending"
+max_batch_size = 5
+max_batch_timeout = 10
+
+# ─── Vectorize ───
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "cloudedge-posts"
+
+# ─── Workers AI ───
+[ai]
+binding = "AI"
+
+# ─── Vars ───
+[vars]
+ENVIRONMENT = "production"
+SITE_URL = "https://yourdomain.com"
+R2_PUBLIC_URL = "https://media.yourdomain.com"
+JWT_SECRET = "dev-secret-change-me-in-production-32chars!"
+
+# ─── Secrets (set via `wrangler secret put`) ───
+# JWT_SECRET
+# RESEND_API_KEY
+# STRIPE_SECRET_KEY
+# STRIPE_WEBHOOK_SECRET
+# R2_ACCESS_KEY_ID
+# R2_SECRET_ACCESS_KEY
+# TURNSTILE_SECRET_KEY
+
+# ─── Routes ───
+routes = [
+  { pattern = "yourdomain.com/api/*", zone_name = "yourdomain.com" },
+  { pattern = "yourdomain.com/admin/*", zone_name = "yourdomain.com" }
+]
+
+# ─── Cron Triggers ───
+[triggers]
+crons = ["*/5 * * * *"]
+
+# ─── Staging Environment ───
+[env.staging]
+name = "cloudedge-cms-staging"
+vars = { ENVIRONMENT = "staging", SITE_URL = "https://staging.yourdomain.com" }
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "cloudedge-cms-db-staging"
+database_id = "YOUR_STAGING_D1_ID"
+
+# ─── Development Environment ───
+[env.dev]
+name = "cloudedge-cms-dev"
+vars = { ENVIRONMENT = "development", SITE_URL = "http://localhost:8787", JWT_SECRET = "dev-secret-change-me-in-production-32chars!", RESEND_API_KEY = "re_dev_placeholder", STRIPE_SECRET_KEY = "sk_test_placeholder", STRIPE_WEBHOOK_SECRET = "whsec_placeholder", R2_ACCESS_KEY_ID = "dev", R2_SECRET_ACCESS_KEY = "dev", TURNSTILE_SECRET_KEY = "1x0000000000000000000000000000000AA" }
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "cloudedge-cms-db-dev"
+database_id = "YOUR_DEV_D1_ID"

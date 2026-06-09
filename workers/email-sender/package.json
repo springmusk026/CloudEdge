@@ -1,0 +1,8 @@
+{
+  "name": "@cloudedge/email-sender",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": { "deploy": "wrangler deploy" },
+  "devDependencies": { "@cloudflare/workers-types": "^4.20250214.0", "typescript": "^5.7.0" }
+}
