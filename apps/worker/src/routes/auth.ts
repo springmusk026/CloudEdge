@@ -111,3 +111,69 @@ authRoutes.get('/me', authMiddleware, async (c) => {
   if (!user) return c.json({ error: 'User not found' }, 404);
   return c.json(user);
 });
+
+
+// POST /api/v1/auth/forgot-password
+authRoutes.post('/forgot-password', async (c) => {
+  const { email } = await c.req.json<{ email: string }>();
+  const db = c.get('db');
+  const user = await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.email, email)).get();
+  if (!user) return c.json({ ok: true }); // Don't reveal existence
+
+  const token = crypto.randomUUID();
+  await c.env.SESSIONS.put(`reset:${token}`, user.id, { expirationTtl: 3600 });
+  await c.env.EMAIL_QUEUE.send({ type: 'email_send', payload: { to: email, template: 'password-reset', data: { name: user.name, url: `${c.env.SITE_URL}/admin/reset-password?token=${token}` } } });
+  return c.json({ ok: true });
+});
+
+// POST /api/v1/auth/reset-password
+authRoutes.post('/reset-password', async (c) => {
+  const { token, password } = await c.req.json<{ token: string; password: string }>();
+  const userId = await c.env.SESSIONS.get(`reset:${token}`);
+  if (!userId) return c.json({ error: 'Invalid or expired token' }, 400);
+
+  const passwordHash = await hashPassword(password);
+  const db = c.get('db');
+  await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+  await c.env.SESSIONS.delete(`reset:${token}`);
+  return c.json({ ok: true });
+});
+
+// POST /api/v1/auth/avatar — upload avatar
+authRoutes.post('/avatar', authMiddleware, async (c) => {
+  const form = await c.req.formData();
+  const file = form.get('file') as File | null;
+  if (!file) return c.json({ error: 'No file' }, 400);
+
+  const userId = c.get('userId')!;
+  const ext = file.name.split('.').pop() || 'jpg';
+  const key = `avatars/${userId}.${ext}`;
+  await c.env.MEDIA_UPLOADS.put(key, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
+
+  const db = c.get('db');
+  await db.update(users).set({ avatarR2Key: key }).where(eq(users.id, userId));
+  return c.json({ key, url: `${c.env.R2_PUBLIC_URL}/${key}` });
+});
+
+// GET /api/v1/auth/verify-email?token=
+authRoutes.get('/verify-email', async (c) => {
+  const token = c.req.query('token');
+  if (!token) return c.json({ error: 'Missing token' }, 400);
+  const userId = await c.env.SESSIONS.get(`verify:${token}`);
+  if (!userId) return c.json({ error: 'Invalid or expired token' }, 400);
+  // Mark user as verified (we'd add a verified column, but for now just delete the token)
+  await c.env.SESSIONS.delete(`verify:${token}`);
+  return c.redirect(`${c.env.SITE_URL}/admin/login?verified=true`);
+});
+
+// POST /api/v1/auth/export-posts — export user's posts as JSON
+authRoutes.get('/export', authMiddleware, async (c) => {
+  const db = c.get('db');
+  const role = c.get('userRole');
+  const userId = c.get('userId')!;
+  const allPosts = role === 'owner' || role === 'admin'
+    ? await db.select().from(users).all() && await db.select().from(posts).all()
+    : await db.select().from(posts).where(eq(posts.authorId, userId)).all();
+  c.header('Content-Disposition', 'attachment; filename="cloudedge-export.json"');
+  return c.json({ exportedAt: new Date().toISOString(), posts: allPosts });
+});

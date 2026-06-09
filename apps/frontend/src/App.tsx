@@ -9,6 +9,7 @@ import { SearchPage } from './pages/SearchPage';
 import { NewsletterPage } from './pages/NewsletterPage';
 import { AuthorPage } from './pages/AuthorPage';
 import { ReadingListPage } from './pages/ReadingListPage';
+import { NotFound } from './pages/NotFound';
 import { AnnouncementBanner } from './components/AnnouncementBanner';
 
 export default function App() {
@@ -19,13 +20,14 @@ export default function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/:slug" element={<PostPage />} />
           <Route path="/tag/:slug" element={<TagPage />} />
           <Route path="/author/:slug" element={<AuthorPage />} />
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/newsletter" element={<NewsletterPage />} />
           <Route path="/reading-list" element={<ReadingListPage />} />
+          <Route path="/:slug" element={<PostPage />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />

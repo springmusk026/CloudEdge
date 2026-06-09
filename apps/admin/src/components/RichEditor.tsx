@@ -28,8 +28,37 @@ export function RichEditor({ content, onChange, placeholder = 'Start writing...'
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
     editorProps: {
       attributes: { class: 'prose prose-lg dark:prose-invert max-w-none min-h-[400px] focus:outline-none p-4' },
+      handleDrop(view, event) {
+        const file = event.dataTransfer?.files?.[0];
+        if (file?.type.startsWith('image/')) { event.preventDefault(); uploadAndInsert(file); return true; }
+        return false;
+      },
+      handlePaste(view, event) {
+        const file = event.clipboardData?.files?.[0];
+        if (file?.type.startsWith('image/')) { event.preventDefault(); uploadAndInsert(file); return true; }
+        return false;
+      },
     },
   });
+
+  async function uploadAndInsert(file: File) {
+    if (!editor) return;
+    try {
+      const token = localStorage.getItem('cloudedge-token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      headers['Content-Type'] = 'application/json';
+
+      const { r2Key, uploadUrl } = await fetch('/api/v1/media/upload-url', {
+        method: 'POST', headers, body: JSON.stringify({ filename: file.name, contentType: file.type, fileSize: file.size }),
+      }).then(r => r.json()) as any;
+
+      await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      await fetch('/api/v1/media/confirm', { method: 'POST', headers, body: JSON.stringify({ r2Key, filename: file.name, contentType: file.type, fileSize: file.size }) });
+
+      editor.chain().focus().setImage({ src: `/${r2Key}` }).run();
+    } catch (e) { console.error('Image upload failed:', e); }
+  }
 
   const setLink = useCallback(() => {
     if (!editor) return;

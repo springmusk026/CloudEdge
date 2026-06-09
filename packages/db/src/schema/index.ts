@@ -43,6 +43,7 @@ export const posts = sqliteTable('posts', {
   readingTimeMinutes: integer('reading_time_minutes'),
   wordCount: integer('word_count'),
   featured: integer('featured', { mode: 'boolean' }).default(false),
+  pinned: integer('pinned', { mode: 'boolean' }).default(false),
   allowComments: integer('allow_comments', { mode: 'boolean' }).default(true),
   canonicalUrl: text('canonical_url'),
   visibility: text('visibility', { enum: ['public', 'members', 'paid', 'specific_tier'] }).notNull().default('public'),

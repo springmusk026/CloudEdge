@@ -85,7 +85,16 @@ postsRoutes.post('/', authMiddleware, requireRole('owner', 'admin', 'editor', 'a
   const userId = c.get('userId')!;
   const body = await c.req.json<{ title: string; slug?: string; contentMarkdown?: string; contentHtml?: string; excerpt?: string; status?: string; tags?: string[]; visibility?: string; featured?: boolean; metaTitle?: string; metaDescription?: string }>();
 
-  const slug = body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  let slug = body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  // Slug collision detection — auto-increment
+  let existing = await db.select({ id: posts.id }).from(posts).where(eq(posts.slug, slug)).get();
+  let suffix = 2;
+  while (existing) {
+    slug = `${slug.replace(/-\d+$/, '')}-${suffix}`;
+    existing = await db.select({ id: posts.id }).from(posts).where(eq(posts.slug, slug)).get();
+    suffix++;
+  }
   const wordCount = (body.contentMarkdown || '').split(/\s+/).length;
   const readingTimeMinutes = Math.max(1, Math.round(wordCount / 250));
 
