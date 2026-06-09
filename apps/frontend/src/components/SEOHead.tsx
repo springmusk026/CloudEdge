@@ -8,9 +8,10 @@ interface Props {
   url?: string;
   author?: string;
   publishedAt?: string;
+  breadcrumbs?: { name: string; url: string }[];
 }
 
-export function SEOHead({ title, description, ogImage, type = 'article', url, author, publishedAt }: Props) {
+export function SEOHead({ title, description, ogImage, type = 'article', url, author, publishedAt, breadcrumbs }: Props) {
   useEffect(() => {
     document.title = `${title} — CloudEdge`;
 
@@ -34,8 +35,18 @@ export function SEOHead({ title, description, ogImage, type = 'article', url, au
     setMeta('article:author', author);
     setMeta('article:published_time', publishedAt);
 
+    // JSON-LD Breadcrumbs
+    if (breadcrumbs?.length) {
+      let script = document.getElementById('breadcrumb-ld') as HTMLScriptElement;
+      if (!script) { script = document.createElement('script'); script.id = 'breadcrumb-ld'; script.type = 'application/ld+json'; document.head.appendChild(script); }
+      script.textContent = JSON.stringify({
+        '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbs.map((b, i) => ({ '@type': 'ListItem', position: i + 1, name: b.name, item: b.url })),
+      });
+    }
+
     return () => { document.title = 'CloudEdge Blog'; };
-  }, [title, description, ogImage, type, url, author, publishedAt]);
+  }, [title, description, ogImage, type, url, author, publishedAt, breadcrumbs]);
 
   return null;
 }

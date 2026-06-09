@@ -97,6 +97,11 @@ export function PostEditor() {
             <div className="space-y-2"><Label>Tags (comma-separated)</Label><Input value={(post.tags || []).join(', ')} onChange={e => update({ tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })} /></div>
             <Separator />
             <div className="flex items-center justify-between"><Label>Featured</Label><Switch checked={post.featured || false} onCheckedChange={v => update({ featured: v })} /></div>
+            <div className="space-y-2">
+              <Label>Schedule Publish</Label>
+              <Input type="datetime-local" value={post.scheduledAt || ''} onChange={e => update({ scheduledAt: e.target.value, status: e.target.value ? 'scheduled' : post.status })} />
+              {post.scheduledAt && <p className="text-xs text-muted-foreground">Will auto-publish at this time</p>}
+            </div>
             <Separator />
             <div className="space-y-2"><Label>Meta Title</Label><Input value={post.metaTitle || ''} onChange={e => update({ metaTitle: e.target.value })} /></div>
             <div className="space-y-2"><Label>Meta Description</Label><Textarea value={post.metaDescription || ''} onChange={e => update({ metaDescription: e.target.value })} className="h-16" /></div>

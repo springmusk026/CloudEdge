@@ -8,6 +8,8 @@ import { RelatedPosts } from '@/components/RelatedPosts';
 import { SEOHead } from '@/components/SEOHead';
 import { BookmarkButton } from '@/components/BookmarkButton';
 import { ShareButtons } from '@/components/ShareButtons';
+import { StickyTOC } from '@/components/StickyTOC';
+import { CodeCopyButtons } from '@/components/CodeCopyButtons';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,7 +47,8 @@ export function PostPage() {
   return (
     <>
       <ReadingProgress />
-      <SEOHead title={post.title} description={post.excerpt || undefined} author={post.author?.name} publishedAt={post.publishedAt || undefined} />
+      <SEOHead title={post.title} description={post.excerpt || undefined} author={post.author?.name} publishedAt={post.publishedAt || undefined}
+        breadcrumbs={[{ name: 'Home', url: '/' }, { name: post.title, url: `/${post.slug}` }]} />
 
       {/* JSON-LD + OG Meta */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
@@ -97,11 +100,17 @@ export function PostPage() {
           <ShareButtons title={post.title} slug={post.slug} />
         </header>
 
-        {/* Table of Contents */}
-        <TableOfContents html={processedHtml} />
+        {/* Sticky sidebar TOC for desktop */}
+        <StickyTOC html={processedHtml} />
+
+        {/* Table of Contents (inline, mobile) */}
+        <div className="xl:hidden">
+          <TableOfContents html={processedHtml} />
+        </div>
 
         {/* Content */}
         <div className="prose prose-lg dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: processedHtml }} />
+        <CodeCopyButtons />
 
         {/* Related Posts */}
         {post.tags && <RelatedPosts currentId={post.id} tags={post.tags} />}

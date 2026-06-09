@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, Eye } from 'lucide-react';
@@ -10,7 +11,9 @@ import { usePosts, useDeletePost } from '@/lib/queries';
 import { api } from '@/lib/api';
 
 export function PostsList() {
-  const { data, isLoading } = usePosts({ limit: 50 });
+  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState('');
+  const { data, isLoading } = usePosts({ limit: 50, status: statusFilter || undefined });
   const deleteMutation = useDeletePost();
   const qc = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -34,11 +37,25 @@ export function PostsList() {
 
   if (isLoading) return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>;
 
+  const filteredPosts = (data?.posts || []).filter(p => !search || p.title.toLowerCase().includes(search.toLowerCase()));
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Posts</h2>
         <Link to="/posts/new"><Button><Plus size={16} className="mr-2" /> New Post</Button></Link>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2">
+        <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search posts..." className="max-w-xs" />
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="h-9 rounded-md border px-3 text-sm">
+          <option value="">All statuses</option>
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="archived">Archived</option>
+        </select>
       </div>
 
       {/* Bulk Actions Bar */}
@@ -68,7 +85,7 @@ export function PostsList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data?.posts.map(post => (
+            {filteredPosts.map(post => (
               <TableRow key={post.id} className={selected.has(post.id) ? 'bg-muted/50' : ''}>
                 <TableCell><input type="checkbox" checked={selected.has(post.id)} onChange={() => toggleSelect(post.id)} className="rounded" /></TableCell>
                 <TableCell>

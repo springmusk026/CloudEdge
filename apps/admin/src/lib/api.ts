@@ -75,6 +75,8 @@ export const api = {
     purgeCache: (keys?: string[]) => request<{ ok: boolean }>('/admin/cache/purge', { method: 'POST', json: { keys } }),
     customizer: () => request<any>('/admin/customizer'),
     updateCustomizer: (data: any) => request<{ ok: boolean }>('/admin/customizer', { method: 'PUT', json: data }),
+    redirects: () => request<any[]>('/admin/redirects'),
+    createRedirect: (data: { sourcePath: string; destinationUrl: string; statusCode: number }) => request<{ ok: boolean }>('/admin/redirects', { method: 'POST', json: data }),
   },
   ai: {
     improve: (text: string) => request<{ result: string }>('/ai/improve', { method: 'POST', json: { text } }),
