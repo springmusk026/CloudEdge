@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, Calendar } from 'lucide-react';
 import type { Post } from '../lib/types';
+import { timeAgo } from '../lib/time';
 
 interface PostCardProps {
   post: Post;
@@ -32,7 +33,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
             {post.publishedAt && (
               <span className="flex items-center gap-1">
                 <Calendar size={12} />
-                {new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {timeAgo(post.publishedAt)}
               </span>
             )}
             {post.readingTimeMinutes && (

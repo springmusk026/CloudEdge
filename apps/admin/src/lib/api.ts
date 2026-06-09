@@ -72,6 +72,7 @@ export const api = {
     updateSettings: (data: Record<string, unknown>) => request<{ ok: boolean }>('/admin/settings', { method: 'PUT', json: data }),
     users: () => request<User[]>('/admin/users'),
     auditLog: (page?: number) => request<AuditEntry[]>(`/admin/audit-log?page=${page || 1}`),
+    notifications: () => request<{ pendingComments: number; recentActions: number }>('/admin/notifications'),
     purgeCache: (keys?: string[]) => request<{ ok: boolean }>('/admin/cache/purge', { method: 'POST', json: { keys } }),
     customizer: () => request<any>('/admin/customizer'),
     updateCustomizer: (data: any) => request<{ ok: boolean }>('/admin/customizer', { method: 'PUT', json: data }),

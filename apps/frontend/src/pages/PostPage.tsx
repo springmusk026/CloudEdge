@@ -10,6 +10,7 @@ import { BookmarkButton } from '@/components/BookmarkButton';
 import { ShareButtons } from '@/components/ShareButtons';
 import { StickyTOC } from '@/components/StickyTOC';
 import { CodeCopyButtons } from '@/components/CodeCopyButtons';
+import { PostNavigation } from '@/components/PostNavigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,6 +115,9 @@ export function PostPage() {
 
         {/* Related Posts */}
         {post.tags && <RelatedPosts currentId={post.id} tags={post.tags} />}
+
+        {/* Post Navigation */}
+        <PostNavigation currentSlug={post.slug} />
 
         {/* Comments */}
         <section className="mt-16 pt-10 border-t">

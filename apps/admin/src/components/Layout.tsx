@@ -1,8 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { LayoutDashboard, FileText, Image, MessageCircle, Mail, Tag, Users, BarChart3, Settings, LogOut, Palette, History, Activity } from 'lucide-react';
+import { LayoutDashboard, FileText, Image, MessageCircle, Mail, Tag, Users, BarChart3, Settings, LogOut, Palette, History, Activity, Bell } from 'lucide-react';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -22,13 +24,21 @@ const NAV = [
 export function Layout() {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { data: notifs } = useQuery({ queryKey: ['notifications'], queryFn: () => api.admin.notifications(), refetchInterval: 60000 });
+  const unread = (notifs?.pendingComments || 0);
 
   return (
     <div className="flex h-screen">
       <aside className="w-60 border-r bg-card flex flex-col">
-        <div className="p-4">
-          <h1 className="text-lg font-bold">CloudEdge</h1>
-          <p className="text-xs text-muted-foreground">{user?.name}</p>
+        <div className="p-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold">CloudEdge</h1>
+            <p className="text-xs text-muted-foreground">{user?.name}</p>
+          </div>
+          <Link to="/comments" className="relative p-2 hover:bg-accent rounded-md">
+            <Bell size={16} />
+            {unread > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">{unread}</span>}
+          </Link>
         </div>
         <Separator />
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">

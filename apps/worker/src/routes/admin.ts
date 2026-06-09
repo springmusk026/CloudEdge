@@ -68,6 +68,17 @@ adminRoutes.get('/audit-log', async (c) => {
   return c.json(results);
 });
 
+// ─── Notifications (unread counts) ───
+adminRoutes.get('/notifications', async (c) => {
+  const db = c.get('db');
+  const [pendingComments, recentAudit] = await Promise.all([
+    db.select({ count: sql<number>`count(*)` }).from(comments).where(eq(comments.status, 'pending')).get(),
+    db.select({ count: sql<number>`count(*)` }).from(auditLog).where(sql`created_at > datetime('now', '-1 day')`).get(),
+  ]);
+  return c.json({ pendingComments: pendingComments?.count || 0, recentActions: recentAudit?.count || 0 });
+});
+
+
 // ─── Announcement Banner ───
 adminRoutes.get('/banner', async (c) => {
   const cached = await c.env.SITE_CONFIG.get('banner');

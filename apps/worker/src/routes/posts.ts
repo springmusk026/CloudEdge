@@ -199,6 +199,28 @@ async function generateEmbedding(c: any, postId: string, title: string, content:
 }
 
 
+
+// POST /api/v1/posts/:id/duplicate — clone a post as draft
+postsRoutes.post('/:id/duplicate', authMiddleware, requireRole('owner', 'admin', 'editor', 'author'), async (c) => {
+  const db = c.get('db');
+  const original = await db.select().from(posts).where(eq(posts.id, c.req.param('id'))).get();
+  if (!original) return c.json({ error: 'Not found' }, 404);
+
+  const id = crypto.randomUUID();
+  let slug = `${original.slug}-copy`;
+  let existing = await db.select({ id: posts.id }).from(posts).where(eq(posts.slug, slug)).get();
+  let n = 2;
+  while (existing) { slug = `${original.slug}-copy-${n++}`; existing = await db.select({ id: posts.id }).from(posts).where(eq(posts.slug, slug)).get(); }
+
+  await db.insert(posts).values({
+    id, title: `${original.title} (Copy)`, slug, contentHtml: original.contentHtml,
+    contentMarkdown: original.contentMarkdown, excerpt: original.excerpt, status: 'draft',
+    authorId: c.get('userId')!, wordCount: original.wordCount, readingTimeMinutes: original.readingTimeMinutes,
+    visibility: original.visibility, metaTitle: original.metaTitle, metaDescription: original.metaDescription,
+  });
+  return c.json({ id, slug }, 201);
+});
+
 // POST /api/v1/posts/:id/share — generate a secret preview link for draft sharing
 postsRoutes.post('/:id/share', authMiddleware, requireRole('owner', 'admin', 'editor', 'author'), async (c) => {
   const postId = c.req.param('id');
