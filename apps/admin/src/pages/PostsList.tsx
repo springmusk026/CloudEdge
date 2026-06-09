@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, Eye } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Plus, Trash2, Eye, Copy, Share2, MoreHorizontal, Pencil } from 'lucide-react';
 import { usePosts, useDeletePost } from '@/lib/queries';
 import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 export function PostsList() {
   const [statusFilter, setStatusFilter] = useState('');
@@ -16,6 +18,7 @@ export function PostsList() {
   const { data, isLoading } = usePosts({ limit: 50, status: statusFilter || undefined });
   const deleteMutation = useDeletePost();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const bulkMutation = useMutation({
@@ -95,9 +98,17 @@ export function PostsList() {
                 </TableCell>
                 <TableCell><Badge variant={statusVariant[post.status] || 'secondary'}>{post.status}</Badge></TableCell>
                 <TableCell className="text-muted-foreground text-sm">{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : '—'}</TableCell>
-                <TableCell className="text-right space-x-1">
-                  <a href={`http://localhost:3000/${post.slug}`} target="_blank" rel="noopener"><Button variant="ghost" size="icon"><Eye size={14} /></Button></a>
-                  <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(post.id)}><Trash2 size={14} className="text-destructive" /></Button>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger><Button variant="ghost" size="icon"><MoreHorizontal size={14} /></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => navigate(`/posts/${post.id}/edit`)}><Pencil size={12} className="mr-2" /> Edit</DropdownMenuItem>
+                      <DropdownMenuItem onClick={async () => { await api.posts.duplicate(post.id); qc.invalidateQueries({ queryKey: ['posts'] }); toast.success('Post duplicated'); }}><Copy size={12} className="mr-2" /> Duplicate</DropdownMenuItem>
+                      <DropdownMenuItem onClick={async () => { const { url } = await api.posts.share(post.id); navigator.clipboard.writeText(url); toast.success('Share link copied'); }}><Share2 size={12} className="mr-2" /> Share Link</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => window.open(`http://localhost:3000/${post.slug}`, '_blank')}><Eye size={12} className="mr-2" /> View</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { deleteMutation.mutate(post.id); toast.success('Post deleted'); }} className="text-destructive"><Trash2 size={12} className="mr-2" /> Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

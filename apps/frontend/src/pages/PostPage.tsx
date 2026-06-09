@@ -11,6 +11,7 @@ import { ShareButtons } from '@/components/ShareButtons';
 import { StickyTOC } from '@/components/StickyTOC';
 import { CodeCopyButtons } from '@/components/CodeCopyButtons';
 import { PostNavigation } from '@/components/PostNavigation';
+import { ReadingTimeProgress } from '@/components/ReadingTimeProgress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,6 +97,7 @@ export function PostPage() {
                 <Clock size={14} /> {post.readingTimeMinutes} min read
               </span>
             )}
+            {post.readingTimeMinutes && <ReadingTimeProgress totalMinutes={post.readingTimeMinutes} />}
             <BookmarkButton postId={post.id} title={post.title} slug={post.slug} />
           </div>
           <ShareButtons title={post.title} slug={post.slug} />

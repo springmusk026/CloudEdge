@@ -11,6 +11,7 @@ import { AuthorPage } from './pages/AuthorPage';
 import { ReadingListPage } from './pages/ReadingListPage';
 import { NotFound } from './pages/NotFound';
 import { AnnouncementBanner } from './components/AnnouncementBanner';
+import { ScrollToTop } from './components/ScrollToTop';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

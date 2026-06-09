@@ -44,6 +44,8 @@ export const api = {
     create: (data: Partial<Post>) => request<{ id: string; slug: string }>('/posts', { method: 'POST', json: data }),
     update: (id: string, data: Partial<Post>) => request<{ ok: boolean }>(`/posts/${id}`, { method: 'PUT', json: data }),
     delete: (id: string) => request<{ ok: boolean }>(`/posts/${id}`, { method: 'DELETE' }),
+    duplicate: (id: string) => request<{ id: string; slug: string }>(`/posts/${id}/duplicate`, { method: 'POST' }),
+    share: (id: string) => request<{ url: string }>(`/posts/${id}/share`, { method: 'POST' }),
   },
   tags: {
     list: () => request<Tag[]>('/tags'),

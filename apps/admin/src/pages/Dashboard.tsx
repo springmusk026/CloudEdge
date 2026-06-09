@@ -1,10 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { FileText, Users, MessageCircle, Eye } from 'lucide-react';
-import { useDashboard } from '@/lib/queries';
+import { useDashboard, usePosts } from '@/lib/queries';
+import { Link } from 'react-router-dom';
 
 export function Dashboard() {
   const { data, isLoading } = useDashboard();
+  const { data: postsData } = usePosts({ limit: 5 });
 
   if (isLoading) return <div className="grid grid-cols-4 gap-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}</div>;
 
@@ -43,6 +46,19 @@ export function Dashboard() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Posts */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Recent Posts</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          {postsData?.posts.slice(0, 5).map(post => (
+            <div key={post.id} className="flex items-center justify-between py-1.5">
+              <Link to={`/posts/${post.id}/edit`} className="text-sm font-medium hover:text-primary truncate flex-1 mr-4">{post.title}</Link>
+              <Badge variant={post.status === 'published' ? 'default' : 'secondary'} className="text-xs shrink-0">{post.status}</Badge>
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>
